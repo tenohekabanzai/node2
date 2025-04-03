@@ -6,7 +6,7 @@ const {rateLimit} = require('express-rate-limit')
 const {RedisStore} = require('rate-limit-redis')
 const proxy = require('express-http-proxy')
 const {RateLimiterRedis} = require('rate-limiter-flexible')
-
+const validateToken = require('./middleware/authMiddleware')
 
 const app = express();
 
@@ -78,6 +78,20 @@ app.use('/v1/auth',proxy('http://localhost:3001',{
     }
 }))
 
+app.use('/v1/posts',validateToken,proxy('http://localhost:3002',{
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts,srcReq)=>{
+        proxyReqOpts.headers['Content-Type'] = 'application/json';
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.userId;
+        return proxyReqOpts
+    },
+    userResDecorator: (proxyRes,proxyResData,userReq,userRes)=>{
+        return proxyResData
+    }
+}))
+
 app.listen(3000,()=>{
     console.log('Api Gateway running on PORT 3000')
+    console.log('Identity Service running on PORT 3001')
+    console.log('Post Service running on PORT 3002')
 })
