@@ -59,9 +59,11 @@ const proxyOptions = {
     },
     proxyErrorHandler: (err,res,next)=>{
         console.log(`proxy error : ${err.message}`)
+        console.log(err)
         res.status(500).json({
             success: false,
             message: 'Internal Server Error',
+            proxyError:"This a proxy error",
             error: err.message
         })
     }
@@ -90,8 +92,23 @@ app.use('/v1/posts',validateToken,proxy('http://localhost:3002',{
     }
 }))
 
+app.use('/v1/media',validateToken,proxy('http://localhost:3003',{
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts,srcReq)=>{
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.userId;
+        if(!srcReq.headers['content-type'].startsWith("multipart/form-data"))
+            proxyReqOpts.headers["Content-Type"] = 'application/json'
+        return proxyReqOpts
+    },
+    userResDecorator: (proxyRes,proxyResData,userReq,userRes)=>{
+        return proxyResData
+    },
+    parseReqBody: false
+}))
+
 app.listen(3000,()=>{
     console.log('Api Gateway running on PORT 3000')
     console.log('Identity Service running on PORT 3001')
     console.log('Post Service running on PORT 3002')
+    console.log('Media Service running on PORT 3003')
 })

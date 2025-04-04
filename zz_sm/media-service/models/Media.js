@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const mediaSchema = new mongoose.Schema({
+const MediaSchema = new mongoose.Schema({
     publicId: {
         type: String,
         required:true,

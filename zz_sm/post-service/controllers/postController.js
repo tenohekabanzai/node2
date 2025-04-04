@@ -19,7 +19,6 @@ const createPost = async(req,res)=>{
         })
 
         await invalidatePostCache(req,post._id.toString());
-
         res.status(201).json({success:true,message:"Post created"});
         
     } catch (error) {
