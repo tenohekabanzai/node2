@@ -7,6 +7,7 @@ const router = require('./routes/postRoutes')
 const {RateLimiterRedis} = require('rate-limiter-flexible')
 const {rateLimit} = require('express-rate-limit')
 const {RedisStore} = require('rate-limit-redis')
+const {connectToRabbitMQ} = require('./utils/rabbitmq')
 
 const connectDB = async () => {
     try {
@@ -71,6 +72,18 @@ app.use('/api/posts',(req,res,next)=>{
     next();
 },router);
 
-app.listen(3002,()=>{
-    console.log("Post Service running on PORT 3002")
-})
+
+
+const startServer = async()=>{
+    try {
+        await connectToRabbitMQ()
+        app.listen(3002,()=>{
+            console.log("Post Service running on PORT 3002")
+        })
+    } catch (error) {
+        console.log('failed to connect to server')
+        process.exit(1)
+    }
+}
+
+startServer();

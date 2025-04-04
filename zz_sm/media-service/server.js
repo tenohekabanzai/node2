@@ -6,6 +6,7 @@ const router = require('./routes/mediaRoutes')
 const Redis = require('ioredis')
 const {rateLimit} = require('express-rate-limit')
 const {RedisStore} = require('rate-limit-redis')
+const {connectToRabbitMQ} = require('./utils/rabbitmq')
 
 const connectDB = async () => {
     try {
@@ -49,6 +50,16 @@ const sensitiveEndpointsLimiter = rateLimit({
 
 app.use('/api/media',router);
 
-app.listen(3003,()=>{
-    console.log("Media Service runing on Port 3003")
-})
+const startServer = async()=>{
+    try {
+        await connectToRabbitMQ()
+        app.listen(3003,()=>{
+            console.log("Media Service runing on Port 3003")
+        })
+    } catch (error) {
+        console.log(error)
+        process.exit(1)
+    }
+}
+
+startServer();

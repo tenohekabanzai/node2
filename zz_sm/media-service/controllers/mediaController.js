@@ -1,5 +1,6 @@
 const Media = require('../models/Media')
 const {uploadMediaToCloudinary} =  require('../utils/cloudinary')
+
 const uploadMedia = async(req,res)=>{
     try {
         console.log("Hello from media controller")
@@ -32,4 +33,14 @@ const uploadMedia = async(req,res)=>{
     }
 }
 
-module.exports = {uploadMedia}
+const getAllMedias = async(req,res)=>{
+    try {
+        const results = await Media.find({})
+        res.json({results})
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({success:false,message:"Internal Server Error"})
+    }
+}
+
+module.exports = {uploadMedia,getAllMedias}
