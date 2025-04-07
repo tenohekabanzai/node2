@@ -72,8 +72,6 @@ app.use('/api/posts',(req,res,next)=>{
     next();
 },router);
 
-
-
 const startServer = async()=>{
     try {
         await connectToRabbitMQ()

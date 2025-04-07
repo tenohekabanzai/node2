@@ -55,5 +55,4 @@ router.post(
 );
 
 router.get("/get",authenticateRequest,getAllMedias);
-
 module.exports = router

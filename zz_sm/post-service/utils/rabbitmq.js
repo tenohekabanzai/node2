@@ -10,7 +10,8 @@ const connectToRabbitMQ = async()=>{
         connection = await amqp.connect("amqp://localhost:5672");
         channel = await connection.createChannel()
 
-        await channel.assertExchange(EXCHANGE_NAME,'topic',{durble: false})
+        // await channel.deleteExchange('facebook_events')
+        await channel.assertExchange(EXCHANGE_NAME,'topic',{durable: false})
         console.log('connected to rabbitMQ')
 
         return channel;
@@ -19,4 +20,13 @@ const connectToRabbitMQ = async()=>{
     }
 }
 
-module.exports = {connectToRabbitMQ}
+const publishEvent = async(routingKey,message)=>{
+    if(!channel){
+        await connectToRabbitMQ()
+    }
+
+    channel.publish(EXCHANGE_NAME,routingKey,Buffer.from(JSON.stringify(message)))
+    console.log(`Event published ${routingKey}`)
+}
+
+module.exports = {connectToRabbitMQ,publishEvent}

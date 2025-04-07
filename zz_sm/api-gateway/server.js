@@ -106,9 +106,22 @@ app.use('/v1/media',validateToken,proxy('http://localhost:3003',{
     parseReqBody: false
 }))
 
+app.use('/v1/search',validateToken,proxy('http://localhost:3004',{
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts,srcReq)=>{
+        proxyReqOpts.headers['Content-Type'] = 'application/json';
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.userId;
+        return proxyReqOpts
+    },
+    userResDecorator: (proxyRes,proxyResData,userReq,userRes)=>{
+        return proxyResData
+    }
+}))
+
 app.listen(3000,()=>{
     console.log('Api Gateway running on PORT 3000')
     console.log('Identity Service running on PORT 3001')
     console.log('Post Service running on PORT 3002')
     console.log('Media Service running on PORT 3003')
+    console.log('Search Service running on PORT 3004')
 })

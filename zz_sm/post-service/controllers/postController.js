@@ -1,4 +1,5 @@
-const Post = require("../models/Post")
+const Post = require("../models/Post");
+const { publishEvent } = require("../utils/rabbitmq");
 
 async function invalidatePostCache(req){
     const keys = await req.redisClient.keys("posts:*");
@@ -16,6 +17,15 @@ const createPost = async(req,res)=>{
             user: req.user.userId,
             content,
             mediaIds: mediaIds || []
+        })
+
+        // push message in queue
+
+        await publishEvent('post.created',{
+            postId: post._id.toString(),
+            userId: post.user.toString(),
+            content: post.content,
+            createdAt: post.createdAt
         })
 
         await invalidatePostCache(req,post._id.toString());
@@ -90,7 +100,14 @@ const deletePost = async(req,res)=>{
 
         const postById = await Post.findOneAndDelete({_id:postId});
         if(!postById)
-            return res.status(404).json({success:false,message:"Post not found"})
+        return res.status(404).json({success:false,message:"Post not found"})
+
+        // publish post delete method -> 
+        await publishEvent('post.deleted',{
+            postId: postById._id.toString(),
+            userId: req.user.userId,
+            mediaIds: postById.mediaIds
+        })
 
         await req.redisClient.del(cacheKey)
         return res.status(200).json({success:true,message:"Post deleted!"})
